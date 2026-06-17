@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - REACT_APP_API_BASE_URL=http://localhost:8080
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    depends_on:
+      - backend
+    networks:
+      - obsidian-network
+
+  # This is a placeholder for the actual Fast Note Sync backend
+  # In a real deployment, you would replace this with your actual backend service
+  backend:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./backend.conf:/etc/nginx/nginx.conf
+    networks:
+      - obsidian-network
+
+networks:
+  obsidian-network:
+    driver: bridge

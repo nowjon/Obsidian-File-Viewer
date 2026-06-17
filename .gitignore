@@ -1,0 +1,62 @@
+# Logs
+logs
+*.log
+npm-debug.log
+
+# Dependency directories
+node_modules
+bower_components
+
+# Optional npm cache
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts
+build/
+dist/
+*.tar.gz
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# React environment variables (not needed in repo)
+.env*
+!.env.example
+
+# Docker
+.dockerignore
+.Dockerfile
+
+# Temporary files
+*~
+*.tmp
+*.temp
+
+# OS specific files
+*.DS_Store
+*.swp
+
+# Local development overrides
+local.config.js
+config.local.js
+
+# IDE specific
+*.iml
+*.ipr
+*.iws
