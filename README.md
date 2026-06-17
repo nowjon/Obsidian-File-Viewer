@@ -79,6 +79,18 @@ The application communicates with the Fast Note Sync API using:
 - `/api/file` - Get content of a specific file
 - `/api/file/info` - Get metadata for a specific file
 
+## GitHub Actions Setup
+
+This repository includes a GitHub Actions workflow that automatically builds and pushes Docker images to Docker Hub when changes are pushed to the main branch or when tags are created.
+
+To use this workflow:
+
+1. Create a Docker Hub account if you don't have one
+2. Create a new repository on Docker Hub named `obsidian-file-viewer`
+3. Add your Docker Hub credentials as GitHub secrets:
+   - `DOCKERHUB_USERNAME` - Your Docker Hub username
+   - `DOCKERHUB_TOKEN` - Your Docker Hub access token (create this in your Docker Hub settings)
+
 ## Contributing
 
 1. Fork the repository
