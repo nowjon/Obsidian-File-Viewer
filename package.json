@@ -1,6 +1,6 @@
 {
   "name": "obsidian-file-viewer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web-based file viewer for Obsidian vaults using Fast Note Sync API",
   "main": "index.js",
   "scripts": {
