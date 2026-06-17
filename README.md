@@ -50,18 +50,30 @@ The application consists of:
    docker build -t obsidian-file-viewer .
    ```
 
-2. Run the container:
+2. Run the container, pointing it at your Fast Note Sync backend:
    ```bash
-   docker run -p 8080:80 obsidian-file-viewer
+   docker run -p 8080:80 -e API_UPSTREAM=host.docker.internal:9000 obsidian-file-viewer
    ```
 
-3. The application will be available at `http://localhost:8080`
+3. The application will be available at `http://localhost:8080`, and a health
+   endpoint is exposed at `http://localhost:8080/health`.
 
 ### Environment Variables
 
-The application uses environment variables for configuration:
+The application is configured at two stages:
 
-- `REACT_APP_API_BASE_URL` - Base URL of the Fast Note Sync API (default: http://localhost:8080)
+**Build time** (passed with `--build-arg`):
+
+- `REACT_APP_API_BASE_URL` - Base URL the SPA uses for API calls. Defaults to
+  empty, which makes the app issue same-origin requests to `/api/*` that nginx
+  proxies to the backend. Set this only when the API is served from a different
+  origin, e.g. `--build-arg REACT_APP_API_BASE_URL=https://api.example.com`.
+
+**Runtime** (passed with `-e`):
+
+- `API_UPSTREAM` - Host:port of the Fast Note Sync backend that nginx proxies
+  `/api/*` requests to (default: `127.0.0.1:9000`). The value is substituted
+  into the nginx config at container start.
 
 ## File Filtering
 
@@ -86,8 +98,8 @@ This repository includes a GitHub Actions workflow that automatically builds and
 To use this workflow:
 
 1. No additional setup required for GHCR - it's free and integrated with GitHub
-2. Your repository will be automatically available at `ghcr.io/USERNAME/Obsidian-File-Viewer`
-3. The workflow uses GitHub's built-in `GITHUB_TOKEN` for authentication, so no secrets are needed
+2. The published image is available at `ghcr.io/USERNAME/obsidian-file-viewer` (GHCR image names are lowercase)
+3. The workflow uses GitHub's built-in `GITHUB_TOKEN` for authentication, so no secrets are needed. The job grants the token `packages: write` permission, which is required to push to GHCR
 
 ## Contributing
 
