@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-// Base URL for the Fast Note Sync API
-// In a real application, this would be configurable
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+// Base URL for the Fast Note Sync API.
+// Default is empty so the SPA makes same-origin requests (/api/*), letting the
+// container's nginx proxy them to the backend. Override at build time with
+// REACT_APP_API_BASE_URL only if the API lives on a different origin.
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 // Create axios instance with default configuration
 const apiClient = axios.create({
