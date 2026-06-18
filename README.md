@@ -68,6 +68,9 @@ The application is configured at two stages:
   empty, which makes the app issue same-origin requests to `/api/*` that nginx
   proxies to the backend. Set this only when the API is served from a different
   origin, e.g. `--build-arg REACT_APP_API_BASE_URL=https://api.example.com`.
+- `REACT_APP_VAULT_NAME` - Optional default vault name pre-filled in the UI. If
+  unset, the field starts empty and the last-used vault is remembered in the
+  browser.
 
 **Runtime** (passed with `-e`):
 
@@ -84,12 +87,28 @@ The application automatically filters out:
 - node_modules directories
 - Other common hidden files and folders
 
+## Usage
+
+Enter your **API token** and your **vault name**, then click *Load Files*. Both
+are remembered in the browser (localStorage) for next time.
+
+- The token is generated in the Fast Note Sync WebGUI (Vaults → *Authorize
+  Obsidian* → add token). It must permit REST access and **not** be restricted
+  to a specific client (a browser sends no client), or the API rejects it with
+  *"Auth token Scope restricted"*.
+- The vault name must match exactly and is matched **by name, not id** — every
+  request requires it (`vault` is a required parameter).
+
 ## API Integration
 
-The application communicates with the Fast Note Sync API using:
-- `/api/files` - Get list of all files in vault
-- `/api/file` - Get content of a specific file
-- `/api/file/info` - Get metadata for a specific file
+The application communicates with the Fast Note Sync API using (all requests
+include the required `vault` parameter):
+- `/api/notes` - List the markdown notes (documents) in a vault
+- `/api/note` - Get a note's markdown content (and metadata)
+
+These endpoints return `{ code, status, message, data }` with HTTP 200 even on
+logical failures; the client inspects `status` and surfaces `message` so errors
+(e.g. a missing vault) are shown rather than silently swallowed.
 
 ## GitHub Actions Setup
 

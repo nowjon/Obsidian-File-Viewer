@@ -10,12 +10,19 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [token, setToken] = useState('');
+  const [vault, setVault] = useState('');
 
   // Load token from environment or localStorage
   useEffect(() => {
     const savedToken = localStorage.getItem('obsidianToken');
     if (savedToken) {
       setToken(savedToken);
+    }
+    // The API requires a vault name (matched by name, not id). Remember the
+    // last-used vault, falling back to a build-time default if provided.
+    const savedVault = localStorage.getItem('obsidianVault') || process.env.REACT_APP_VAULT_NAME;
+    if (savedVault) {
+      setVault(savedVault);
     }
   }, []);
 
@@ -25,6 +32,13 @@ function App() {
       localStorage.setItem('obsidianToken', token);
     }
   }, [token]);
+
+  // Save vault to localStorage when it changes
+  useEffect(() => {
+    if (vault) {
+      localStorage.setItem('obsidianVault', vault);
+    }
+  }, [vault]);
 
   const handleTokenSubmit = (e) => {
     e.preventDefault();
@@ -37,12 +51,16 @@ function App() {
       setError('Please enter your authentication token');
       return;
     }
+    if (!vault) {
+      setError('Please enter your vault name');
+      return;
+    }
 
     setLoading(true);
     setError(null);
-    
+
     try {
-      const fileList = await getFileList(token);
+      const fileList = await getFileList(token, vault);
       const filteredFiles = filterHiddenFiles(fileList);
       setFiles(filteredFiles);
     } catch (err) {
@@ -62,7 +80,7 @@ function App() {
     setError(null);
     
     try {
-      const content = await getFileContent(token, file.path);
+      const content = await getFileContent(token, vault, file.path);
       setCurrentFile({ ...file, content });
     } catch (err) {
       setError(`Failed to load file: ${err.message}`);
@@ -87,7 +105,14 @@ function App() {
             placeholder="Enter your API token"
             style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
-          <button 
+          <input
+            type="text"
+            value={vault}
+            onChange={(e) => setVault(e.target.value)}
+            placeholder="Vault name"
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+          />
+          <button
             type="submit" 
             onClick={loadFiles}
             style={{ padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}

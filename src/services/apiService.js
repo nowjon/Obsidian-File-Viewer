@@ -43,67 +43,91 @@ apiClient.interceptors.response.use(
   }
 );
 
+// The Fast Note Sync API returns HTTP 200 even for logical failures, signalling
+// the outcome through the body: { code, status, message, details, data }.
+// `status` is true on success. Unwrap to `data` and surface failures as errors
+// (otherwise the SPA silently shows an empty list — e.g. "vault is a required field").
+const unwrap = (response) => {
+  const body = response.data || {};
+  if (body.status === false) {
+    const detail = Array.isArray(body.details) ? body.details.join('; ') : body.details;
+    throw new Error(detail ? `${body.message} (${detail})` : body.message || 'Request failed');
+  }
+  return body.data;
+};
+
+// Items from the notes/files endpoints carry only a `path`; derive a display
+// name (basename) and a type so the UI components have what they expect.
+const decorate = (item) => ({
+  ...item,
+  name: item.path ? item.path.split('/').pop() : item.path,
+  type: 'file',
+});
+
 /**
- * Get list of files from the vault
- * @param {string} token - Authentication token
- * @returns {Promise<Array>} List of files
+ * Get the list of notes (markdown documents) in a vault.
+ * @param {string} token - Authentication token (also applied via interceptor)
+ * @param {string} vault - Vault name (required by the API, matched by name not id)
+ * @returns {Promise<Array>} List of note objects ({ path, name, ... })
  */
-export const getFileList = async (token) => {
+export const getFileList = async (token, vault) => {
   try {
-    const response = await apiClient.get('/api/files', {
+    const response = await apiClient.get('/api/notes', {
       params: {
-        token,
-        // Add any other required parameters here
+        vault,
+        page: 1,
+        page_size: 100,
       },
     });
-    
-    return response.data.data || [];
+
+    const data = unwrap(response);
+    const list = (data && data.list) || [];
+    return list.map(decorate);
   } catch (error) {
     throw new Error(`Failed to fetch file list: ${error.message}`);
   }
 };
 
 /**
- * Get content of a specific file
- * @param {string} token - Authentication token
- * @param {string} path - File path
- * @returns {Promise<string>} File content
+ * Get the content of a specific note.
+ * @param {string} token - Authentication token (also applied via interceptor)
+ * @param {string} vault - Vault name
+ * @param {string} path - Note path within the vault
+ * @returns {Promise<string>} Note markdown content
  */
-export const getFileContent = async (token, path) => {
+export const getFileContent = async (token, vault, path) => {
   try {
-    // For binary files, we need to handle the response differently
-    const response = await apiClient.get(`/api/file`, {
+    const response = await apiClient.get('/api/note', {
       params: {
-        token,
+        vault,
         path,
-        // Add other parameters as needed
       },
-      responseType: 'text',
     });
-    
-    return response.data;
+
+    const data = unwrap(response);
+    return (data && data.content) || '';
   } catch (error) {
     throw new Error(`Failed to fetch file content: ${error.message}`);
   }
 };
 
 /**
- * Get metadata for a specific file
- * @param {string} token - Authentication token
- * @param {string} path - File path
- * @returns {Promise<Object>} File metadata
+ * Get metadata for a specific note.
+ * @param {string} token - Authentication token (also applied via interceptor)
+ * @param {string} vault - Vault name
+ * @param {string} path - Note path within the vault
+ * @returns {Promise<Object>} Note metadata
  */
-export const getFileMetadata = async (token, path) => {
+export const getFileMetadata = async (token, vault, path) => {
   try {
-    const response = await apiClient.get(`/api/file/info`, {
+    const response = await apiClient.get('/api/note', {
       params: {
-        token,
+        vault,
         path,
-        // Add other parameters as needed
       },
     });
-    
-    return response.data.data || {};
+
+    return unwrap(response) || {};
   } catch (error) {
     throw new Error(`Failed to fetch file metadata: ${error.message}`);
   }
